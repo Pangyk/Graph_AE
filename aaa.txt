@@ -1,0 +1,5 @@
+ssh -N -f -L 6001:192.168.0.17:22 -p 22 ilab@ilabpi3.usc.edu -o TCPKeepAlive=yes
+ssh -N -f -L 6015:igpu15:22 -p 22 ilab@ilabpi3.usc.edu -o TCPKeepAlive=yes
+ssh -N -f -L 6021:igpu21:22 -p 22 ilab@ilabpi3.usc.edu -o TCPKeepAlive=yes
+
+/home/andy23/lab/ykp
