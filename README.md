@@ -8,14 +8,14 @@ This folder contains codes that generate scene graphs from images.
 
 ### 3. classification
 This folder contains different models.
-Baseline: simple classifier without Autoencoder.
-Classifier: simple classifier for latent space produced by Autoencoder-based models.
-Classifier_UNet: classifier for Graph UNet.
-Gpool_model: Autoencoder using G-pooling.
-Graph_AE: Autoencoder using MIAGAE.
-Graph_AE_SAGE: Autoencoder using multi-kernel SAGE.
-SAG_model: Autoencoder using SAG pool.
-UNet: Graph UNet.
+* Baseline: simple classifier without Autoencoder.
+* Classifier: simple classifier for latent space produced by Autoencoder-based models.
+* Classifier_UNet: classifier for Graph UNet.
+* Gpool_model: Autoencoder using G-pooling.
+* Graph_AE: Autoencoder using MIAGAE.
+* Graph_AE_SAGE: Autoencoder using multi-kernel SAGE.
+* SAG_model: Autoencoder using SAG pool.
+* UNet: Graph UNet.
 
 ### 4. graph_ae
 This folder contains extra implementation for the models.
