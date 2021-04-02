@@ -214,24 +214,24 @@ class SelectGraph(InMemoryDataset, ABC):
         # Read data into huge `Data` list.
         print(SelectGraph.direction)
         data_list = []
-        path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', 'MUTAG')
+        path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', SelectGraph.data_name)
         data_set = TUDataset(path, name=SelectGraph.data_name, use_node_attr=True)
-        for data in data_set:
-            if SelectGraph.direction < 0:
-                if data.y < SelectGraph.thresh:
-                    data_list.append(data)
-            else:
-                if data.y >= SelectGraph.thresh:
-                    data_list.append(data)
+        # for data in data_set:
+        #     if SelectGraph.direction < 0:
+        #         if data.y < SelectGraph.thresh:
+        #             data_list.append(data)
+        #     else:
+        #         if data.y >= SelectGraph.thresh:
+        #             data_list.append(data)
 
-        random.shuffle(data_list)
-        data, slices = self.collate(data_list)
+        data, slices = self.collate(data_set)
         torch.save((data, slices), self.processed_paths[0])
 
 
 class SceneGraphs(InMemoryDataset, ABC):
     def __init__(self, root, transform=None, pre_transform=None):
         super(SceneGraphs, self).__init__(root, transform, pre_transform)
+        self.root = root
         self.data, self.slices = torch.load(self.processed_paths[0])
 
     @property
@@ -241,9 +241,9 @@ class SceneGraphs(InMemoryDataset, ABC):
     def process(self):
         data_list = []
 
-        with open('data/scene/objects.json', 'r') as f:
+        with open(self.root + '/objects.json', 'r') as f:
             objects = f.read()
-        with open('data/scene/relationships.json', 'r') as f:
+        with open(self.root + '/relationships.json', 'r') as f:
             links = f.read()
 
         object_entry = json.loads(objects)
@@ -252,7 +252,7 @@ class SceneGraphs(InMemoryDataset, ABC):
 
         count = 0
         num_samples = 5000
-        feature_size = 20
+        feature_size = 500
 
         for i in tqdm(range(num_samples)):
             objs = object_entry[i]["objects"]

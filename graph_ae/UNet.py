@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from torch_sparse import spspmm, coalesce
-from torch_geometric.nn import TopKPooling, GCNConv
+from torch_geometric.nn import TopKPooling, GCNConv as conv
 from torch_geometric.utils import (add_self_loops, sort_edge_index,
                                    remove_self_loops)
 from torch_geometric.utils.repeat import repeat
@@ -25,6 +25,7 @@ class GraphUNet(torch.nn.Module):
         act (torch.nn.functional, optional): The nonlinearity to use.
             (default: :obj:`torch.nn.functional.relu`)
     """
+
     def __init__(self, in_channels, hidden_channels, out_channels, depth,
                  pool_ratios=0.5, sum_res=True, act=F.relu):
         super(GraphUNet, self).__init__()
@@ -41,17 +42,17 @@ class GraphUNet(torch.nn.Module):
 
         self.down_convs = torch.nn.ModuleList()
         self.pools = torch.nn.ModuleList()
-        self.down_convs.append(GCNConv(in_channels, channels, improved=True))
+        self.down_convs.append(conv(in_channels, channels, improved=True))
         for i in range(depth):
             self.pools.append(TopKPooling(channels, self.pool_ratios[i]))
-            self.down_convs.append(GCNConv(channels, channels, improved=True))
+            self.down_convs.append(conv(channels, channels, improved=True))
 
         in_channels = channels if sum_res else 2 * channels
 
         self.up_convs = torch.nn.ModuleList()
         for i in range(depth - 1):
-            self.up_convs.append(GCNConv(in_channels, channels, improved=True))
-        self.up_convs.append(GCNConv(in_channels, out_channels, improved=True))
+            self.up_convs.append(conv(in_channels, channels, improved=True))
+        self.up_convs.append(conv(in_channels, out_channels, improved=True))
 
         self.reset_parameters()
 
@@ -63,7 +64,6 @@ class GraphUNet(torch.nn.Module):
         for conv in self.up_convs:
             conv.reset_parameters()
 
-
     def forward(self, x, edge_index, batch=None):
         """"""
         if batch is None:
@@ -73,11 +73,13 @@ class GraphUNet(torch.nn.Module):
         x = self.down_convs[0](x, edge_index, edge_weight)
         x = self.act(x)
 
+        # print("==============")
+        # num = x.shape[0] * x.shape[1] * 32
+        # num += edge_index.shape[0] * edge_index.shape[1] * 64
         xs = [x]
         edge_indices = [edge_index]
         edge_weights = [edge_weight]
         perms = []
-
         for i in range(1, self.depth + 1):
             edge_index, edge_weight = self.augment_adj(edge_index, edge_weight,
                                                        x.size(0))
@@ -86,13 +88,25 @@ class GraphUNet(torch.nn.Module):
 
             x = self.down_convs[i](x, edge_index, edge_weight)
             x = self.act(x)
-
             if i < self.depth:
                 xs += [x]
                 edge_indices += [edge_index]
                 edge_weights += [edge_weight]
+                # num += edge_index.shape[0] * edge_index.shape[1] * 64
             perms += [perm]
+            # num += perm.shape[0] * 64
+        # print(num)
+        # print("=========")
+        # yuji = 0
 
+        # for i in range(len(edge_weights)):
+        #     yuji += int(edge_weights[i].shape[0])
+
+        # print(edge_weights[0].dtype)
+        # shana = x.shape[0]
+        latent_x = x
+        b = batch
+        latent_edge = edge_index
         for i in range(self.depth):
             j = self.depth - 1 - i
 
@@ -107,8 +121,9 @@ class GraphUNet(torch.nn.Module):
 
             x = self.up_convs[i](x, edge_index, edge_weight)
             x = self.act(x) if i < self.depth - 1 else x
-
-        return x
+        # print(x.shape)
+        # print("=========================")
+        return x, latent_x, latent_edge, b
 
     def augment_adj(self, edge_index, edge_weight, num_nodes):
         edge_index, edge_weight = coalesce(edge_index, edge_weight, num_nodes, num_nodes)

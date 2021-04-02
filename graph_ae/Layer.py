@@ -7,6 +7,7 @@ from graph_ae.GATConv import GATConv
 from graph_ae.SAGEAttn import SAGEAttn
 from torch_sparse import spspmm
 import torch.nn.functional as f
+from torch.nn import Parameter
 import torch
 
 from torch_geometric.nn import SAGEConv
@@ -22,6 +23,7 @@ class SGAT(torch.nn.Module, ABC):
         self.in_channel = in_channel
         self.out_channel = out_channel
         self.heads = heads
+        # self.pm = Parameter(torch.ones([self.size]))
         self.gat_list = torch.nn.ModuleList()
 
         for i in range(size):
@@ -30,12 +32,15 @@ class SGAT(torch.nn.Module, ABC):
         self.reset_parameters()
 
     def reset_parameters(self):
+        # self.pm.data.fill_(1)
         for conv in self.gat_list:
             conv.reset_parameters()
 
     def forward(self, x, edge_index, direction=1):
         feature_list = None
         attention_list = []
+        # pm = torch.softmax(self.pm, dim=-1)
+        idx = 0
         for conv in self.gat_list:
             feature, attn = conv(x, edge_index)
             if feature_list is None:
@@ -43,13 +48,13 @@ class SGAT(torch.nn.Module, ABC):
             else:
                 feature_list += f.leaky_relu(feature)
             attention_list.append(attn)
+            idx += 1
 
-        attention_cat = torch.stack(attention_list, dim=1)
-        if attention_cat.shape[1] > 1:
-            attention_cat = attention_cat.sum(dim=1)
-
+        attention_list = torch.stack(attention_list, dim=1)
+        if attention_list.shape[1] > 1:
+            attention_list = torch.sum(attention_list, dim=1)
         e_batch = edge_index[0]
-        node_scores = direction * g_pooling(attention_cat, e_batch).view(-1)
+        node_scores = direction * g_pooling(attention_list, e_batch).view(-1)
         return feature_list, node_scores
 
 
@@ -77,9 +82,10 @@ class SGConv(torch.nn.Module, ABC):
         for conv in self.gat_list:
             feature = conv(x, edge_index)
             if feature_list is None:
-                feature_list = f.leaky_relu(feature)
+                feature_list = [f.leaky_relu(feature)]
             else:
-                feature_list += f.leaky_relu(feature)
+                feature_list += [f.leaky_relu(feature)]
+        feature_list = torch.cat(feature_list, dim=-1)
 
         return feature_list
 
@@ -106,6 +112,7 @@ class GAEConv(torch.nn.Module, ABC):
     def forward(self, x, edge_index, direction=1):
         feature_list = None
         attention_list = []
+        idx = 0
         for conv in self.gat_list:
             feature, (edge_id, attention_weight) = conv(x, edge_index, return_attention_weights=True)
             if feature_list is None:
@@ -113,6 +120,7 @@ class GAEConv(torch.nn.Module, ABC):
             else:
                 feature_list += f.leaky_relu(feature)
             attention_list.append(attention_weight.view(-1))
+            idx += 1
 
         attention_cat = torch.stack(attention_list, dim=1)
         if attention_cat.shape[1] > 1:

@@ -4,6 +4,7 @@ import torch
 
 
 def display(data_list, num_epoch, labels, title):
+    plt.title(title, y=-0.1)
     plt_x = np.linspace(1, num_epoch, num_epoch)
     for i in range(2):
         for j in range(2):

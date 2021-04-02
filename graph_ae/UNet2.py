@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
-from torch_sparse import spspmm
-from torch_geometric.nn import TopKPooling, GCNConv as conv
+from torch_sparse import spspmm, coalesce
+from torch_geometric.nn import TopKPooling, SAGEConv as conv
 from torch_geometric.utils import (add_self_loops, sort_edge_index,
                                    remove_self_loops)
 from torch_geometric.utils.repeat import repeat
@@ -73,11 +73,10 @@ class GraphUNet(torch.nn.Module):
         x = self.down_convs[0](x, edge_index, edge_weight)
         x = self.act(x)
 
-        xs = [x]
+        xs = [x.shape]
         edge_indices = [edge_index]
         edge_weights = [edge_weight]
         perms = []
-
         for i in range(1, self.depth + 1):
             edge_index, edge_weight = self.augment_adj(edge_index, edge_weight,
                                                        x.size(0))
@@ -86,13 +85,15 @@ class GraphUNet(torch.nn.Module):
 
             x = self.down_convs[i](x, edge_index, edge_weight)
             x = self.act(x)
-
             if i < self.depth:
-                xs += [x]
+                xs += [x.shape]
                 edge_indices += [edge_index]
                 edge_weights += [edge_weight]
             perms += [perm]
 
+        latent_x = x
+        b = batch
+        latent_edge = edge_index
         for i in range(self.depth):
             j = self.depth - 1 - i
 
@@ -101,24 +102,21 @@ class GraphUNet(torch.nn.Module):
             edge_weight = edge_weights[j]
             perm = perms[j]
 
-            up = torch.zeros_like(res)
+            up = torch.zeros(res).to(torch.device("cuda:1"))
             up[perm] = x
-            x = res + up if self.sum_res else torch.cat((res, up), dim=-1)
+            x = up
 
             x = self.up_convs[i](x, edge_index, edge_weight)
-            x = self.act(x) if i < self.depth - 1 else x
-
-        return x
+            # x = self.act(x) if i < self.depth - 1 else x
+        return x, latent_x, latent_edge, b
 
     def augment_adj(self, edge_index, edge_weight, num_nodes):
-        edge_index, edge_weight = add_self_loops(edge_index, edge_weight,
-                                                 num_nodes=num_nodes)
+        edge_index, edge_weight = coalesce(edge_index, edge_weight, num_nodes, num_nodes)
         edge_index, edge_weight = sort_edge_index(edge_index, edge_weight,
                                                   num_nodes)
         edge_index, edge_weight = spspmm(edge_index, edge_weight, edge_index,
                                          edge_weight, num_nodes, num_nodes,
                                          num_nodes)
-        edge_index, edge_weight = remove_self_loops(edge_index, edge_weight)
         return edge_index, edge_weight
 
     def __repr__(self):

@@ -4,7 +4,7 @@ from torch_geometric.nn import global_mean_pool, SAGEConv
 import torch.nn.functional as F
 import torch
 
-device = torch.device('cuda')
+device = torch.device('cuda:1')
 
 
 class MLP(torch.nn.Module, ABC):
@@ -103,7 +103,7 @@ class MLP(torch.nn.Module, ABC):
             for data in valid_set:
                 data = data.to(device)
                 self.training = False
-                c = model(group2[0], group2[1], group2[2])
+                c = model(group2[0], group1[1], group2[2])
                 pred = c.argmax(dim=1)
                 label = data.y.long()
                 total_num += label.shape[0]

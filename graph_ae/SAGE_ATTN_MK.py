@@ -9,6 +9,7 @@ from torch_sparse import SparseTensor, matmul
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.utils import softmax
 from torch.nn import Parameter
+from torch_geometric.nn import global_mean_pool as g_pooling
 
 
 class SAGEAttn(MessagePassing):
@@ -33,29 +34,35 @@ class SAGEAttn(MessagePassing):
         **kwargs (optional): Additional arguments of
             :class:`torch_geometric.nn.conv.MessagePassing`.
     """
-    def __init__(self, in_channels: Union[int, Tuple[int, int]],
+    def __init__(self, num_k, in_channels: Union[int, Tuple[int, int]],
                  out_channels: int, normalize: bool = False,
                  bias: bool = True, **kwargs):  # yapf: disable
         super(SAGEAttn, self).__init__(aggr='mean', **kwargs)
-
+        kwargs.setdefault('aggr', 'mean')
+        self.num_k = num_k
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.normalize = normalize
         self.beta = Parameter(torch.Tensor(1))
+        self.pm = Parameter(torch.ones([self.num_k]))
         self._alpha = None
+        self.layers = torch.nn.ModuleList()
 
         if isinstance(in_channels, int):
             in_channels = (in_channels, in_channels)
 
         self.lin_l = Linear(in_channels[0], out_channels, bias=bias)
-        self.lin_r = Linear(in_channels[1], out_channels, bias=False)
+        for i in range(num_k):
+            self.layers.append(Linear(in_channels[1], out_channels, bias=False))
 
         self.reset_parameters()
 
     def reset_parameters(self):
         self.beta.data.fill_(1)
+        self.pm.data.fill_(1)
         self.lin_l.reset_parameters()
-        self.lin_r.reset_parameters()
+        for lin in self.layers:
+            lin.reset_parameters()
 
     def forward(self, x: Tensor, edge_index: Adj,
                 size: Size = None) -> Tensor:
@@ -64,20 +71,24 @@ class SAGEAttn(MessagePassing):
         x1: OptPairTensor = (x, x)
 
         # propagate_type: (x: OptPairTensor)
+        x_r = x1[1]
+
         out = self.propagate(edge_index, x=x, x_norm=x_norm, size=None)
         out = self.lin_l(out)
 
         alpha = self._alpha
         self._alpha = None
 
-        x_r = x1[1]
+        pm = torch.softmax(self.pm, dim=-1)
         if x_r is not None:
-            out += self.lin_r(x_r)
-
+            for i in range(self.num_k):
+                out += pm[i] * F.leaky_relu(self.layers[i](x_r))
         if self.normalize:
             out = F.normalize(out, p=2., dim=-1)
 
-        return out, alpha
+        e_batch = edge_index[0]
+        node_scores = g_pooling(alpha, e_batch).view(-1)
+        return out, node_scores
 
     def message(self, x_j: Tensor, x_norm_i: Tensor, x_norm_j: Tensor,
                 index: Tensor, ptr: OptTensor,
