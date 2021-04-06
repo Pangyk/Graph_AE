@@ -9,11 +9,7 @@ takes a graph as input and compresses the graph on the latent space. The classif
 takes the latent space produced by the compression module and predicts the class the graph belongs to.
 
 The network is implemented using [PyTorch](https://pytorch.org/) and 
-[PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/) 
-; and the rest of the framework is in Python.
-
-## Project page
-The project page is available at []().
+[PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/); and the rest of the framework is in Python.
 
 ## Dependencies
 To get started with the framework, install the following dependencies:
@@ -39,7 +35,7 @@ Download the dataset and unzip it to the 'data' folder.
         - {dataset name}_node_attributes.txt, a file indicating the features of the node.
         - {dataset name}_graph_labels.txt (optional), a file indicating the class of a graph.
         - You can find samples of these files by downloading any of the dataset from [https://chrsmrrs.github.io/datasets/docs/datasets/](https://chrsmrrs.github.io/datasets/docs/datasets/).
-4. You can visit [](), which introduces how to generate graphs from images.
+4. You can visit [http://ilab.usc.edu/datasets/i2sg](http://ilab.usc.edu/datasets/i2sg), which introduces how to generate graphs from images.
 
 ## Quick Start
 1. Make sure you have installed all the dependencies.
@@ -113,8 +109,6 @@ Download the dataset and unzip it to the 'data' folder.
 
 - utils: contains tools for visualization and loading pre-trained models.
 
-## Citing this work
+## Citing This Work
 If you find this work useful in your research, please consider citing:  
-    ```
     
-    ```
