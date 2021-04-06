@@ -67,8 +67,6 @@ def main(args):
                 node_temp.append(b)
 
         Num_Nodes = len(node_temp)
-        # print(Num_Nodes)
-        # print(node_temp)
         ## Step 3: Get Node and real edges
         for j in range(Num_Nodes):
             # node_index.append(j)

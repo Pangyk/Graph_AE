@@ -107,7 +107,7 @@ class GraphUNet(torch.nn.Module):
             x = up
 
             x = self.up_convs[i](x, edge_index, edge_weight)
-            # x = self.act(x) if i < self.depth - 1 else x
+            x = self.act(x) if i < self.depth - 1 else x
         return x, latent_x, latent_edge, b
 
     def augment_adj(self, edge_index, edge_weight, num_nodes):

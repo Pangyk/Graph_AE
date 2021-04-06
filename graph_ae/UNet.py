@@ -92,18 +92,7 @@ class GraphUNet(torch.nn.Module):
                 xs += [x]
                 edge_indices += [edge_index]
                 edge_weights += [edge_weight]
-                # num += edge_index.shape[0] * edge_index.shape[1] * 64
             perms += [perm]
-            # num += perm.shape[0] * 64
-        # print(num)
-        # print("=========")
-        # yuji = 0
-
-        # for i in range(len(edge_weights)):
-        #     yuji += int(edge_weights[i].shape[0])
-
-        # print(edge_weights[0].dtype)
-        # shana = x.shape[0]
         latent_x = x
         b = batch
         latent_edge = edge_index
@@ -121,8 +110,6 @@ class GraphUNet(torch.nn.Module):
 
             x = self.up_convs[i](x, edge_index, edge_weight)
             x = self.act(x) if i < self.depth - 1 else x
-        # print(x.shape)
-        # print("=========================")
         return x, latent_x, latent_edge, b
 
     def augment_adj(self, edge_index, edge_weight, num_nodes):

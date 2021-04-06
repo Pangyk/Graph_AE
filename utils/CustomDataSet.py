@@ -199,8 +199,6 @@ class ExistGraph(Dataset):
 
 class SelectGraph(InMemoryDataset, ABC):
     data_name = ''
-    thresh = 0
-    direction = 0
 
     def __init__(self, root, transform=None, pre_transform=None):
         super(SelectGraph, self).__init__(root, transform, pre_transform)
@@ -211,18 +209,8 @@ class SelectGraph(InMemoryDataset, ABC):
         return ['data.pt']
 
     def process(self):
-        # Read data into huge `Data` list.
-        print(SelectGraph.direction)
-        data_list = []
         path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', SelectGraph.data_name)
         data_set = TUDataset(path, name=SelectGraph.data_name, use_node_attr=True)
-        # for data in data_set:
-        #     if SelectGraph.direction < 0:
-        #         if data.y < SelectGraph.thresh:
-        #             data_list.append(data)
-        #     else:
-        #         if data.y >= SelectGraph.thresh:
-        #             data_list.append(data)
 
         data, slices = self.collate(data_set)
         torch.save((data, slices), self.processed_paths[0])

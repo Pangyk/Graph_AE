@@ -46,10 +46,6 @@ def main(args):
         print(file)
         Ori_Dict.append(np.load(os.path.join(Dict_P, file)).tolist())
 
-    # print(Ori_Dict)
-    # print(Ori_Label_N)
-    # print(New_Label)
-
     ## Step 2: Get New Dict
     for i in range(len(Ori_Dict)):
         for j in range(len(New_Label[i])):
@@ -66,9 +62,6 @@ def main(args):
                 if word_now == New_Dict[k]:
                     New_Label[i][j] = k + 1  # Nodel Label Starts from 1
 
-    ## Save:
-    # print(New_Dict)
-    # print(New_Label)
     New_Dict = np.save(os.path.join(Out_P, 'global_dict.npy'), np.array(New_Dict))
 
     for i in range(len(New_Label)):

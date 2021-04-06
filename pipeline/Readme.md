@@ -17,7 +17,7 @@ python Data_P.py --out_dir /home/shana/result --root /home/shana/test --name Sha
 [file1]name_A.txt
 [file2]name_graph_indicator.txt
 [file3]name_graph_labels.txt
-[file4]nodel_labels.npy
+[file4]node_labels.npy
 [file5]label_dict.npy
 
 
