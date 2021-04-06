@@ -70,7 +70,7 @@ Download the dataset and unzip it to the 'data' folder.
 
 3. Run the following command to train and test the classification module. (You should train the compression module first)
     ```
-   python train_compression.py
+   python train_classifier.py
    There are several options:
    
    # Parameters that should be the same with compression module:
