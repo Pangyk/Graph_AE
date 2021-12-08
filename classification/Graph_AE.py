@@ -39,7 +39,7 @@ class Net(torch.nn.Module, ABC):
         self.up_list.append(conv)
 
     def augment_adj(self, edge_index, edge_weight, num_nodes):
-        edge_index, edge_weight = coalesce(edge_index, edge_weight, num_nodes, num_nodes)
+        # edge_index, edge_weight = coalesce(edge_index, edge_weight, num_nodes, num_nodes)
         edge_index, edge_weight = sort_edge_index(edge_index, edge_weight,
                                                   num_nodes)
         edge_index, edge_weight = spspmm(edge_index, edge_weight, edge_index,
@@ -54,7 +54,7 @@ class Net(torch.nn.Module, ABC):
         edge_list = []
         perm_list = []
         shape_list = []
-        edge_weight = None
+        edge_weight = x.new_ones(edge_index.size(1))
 
         f, e, b = x, edge_index, batch
         for i in range(self.depth):
@@ -65,7 +65,7 @@ class Net(torch.nn.Module, ABC):
             f = F.leaky_relu(f)
             f, e, _, b, perm, _ = self.pool_list[i](f, e, edge_weight, b, attn)
             if i < self.depth - 1:
-                e, _ = self.augment_adj(e, None, f.shape[0])
+                e, edge_weight = self.augment_adj(e, edge_weight, f.shape[0])
             perm_list.append(perm)
         latent_x, latent_edge = f, e
 

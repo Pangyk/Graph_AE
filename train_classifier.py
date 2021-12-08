@@ -50,7 +50,7 @@ if __name__ == "__main__":
     # for compression model, same as train_compression.py
     parser.add_argument('--m', type=str, default='MIAGAE', help="model name")
     parser.add_argument('--device', type=str, default='cuda', help="cuda / cpu")
-    parser.add_argument('--model_dir', type=str, default="/data/model/", help="path to save model")
+    parser.add_argument('--model_dir', type=str, default="data/model/", help="path to save model")
     parser.add_argument('--k', type=int, default=2, help="number of kernels")
     parser.add_argument('--depth', type=int, default=3, help="depth of encoder and decoder")
     parser.add_argument('--c_rate', type=float, default=0.8, help="compression ratio for each layer of encoder")

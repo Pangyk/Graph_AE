@@ -3,7 +3,7 @@ from abc import ABC
 from torch_geometric.nn.pool.topk_pool import topk, filter_adj
 from torch_geometric.nn import global_add_pool as g_pooling
 from torch_geometric.utils import sort_edge_index
-from graph_ae.GATConv import GATConv
+# from graph_ae.GATConv import GATConv
 from graph_ae.SAGEAttn import SAGEAttn
 from torch_sparse import spspmm
 import torch.nn.functional as f

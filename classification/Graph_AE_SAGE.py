@@ -76,7 +76,7 @@ class Net(torch.nn.Module, ABC):
         edge_list = [edge_index]
         perm_list = []
         shape_list = []
-        edge_weight = None
+        edge_weight = x.new_ones(edge_index.size(1))
 
         f, e, b = x, edge_index, batch
         for i in range(self.depth):
@@ -84,7 +84,7 @@ class Net(torch.nn.Module, ABC):
             shape_list.append(f.shape)
             f = torch.relu(f)
             e = self.augment_adj(e, edge_weight, f.shape[0])
-            f, e, _, b, perm, _ = self.pool_list[i](f, e, None, b)
+            f, e, _, b, perm, _ = self.pool_list[i](f, e, edge_weight, b)
             # f, e, b, perm = self.pool_list[i](f, e, attn, b, self.direction)
             edge_list.append(e)
             perm_list.append(perm)

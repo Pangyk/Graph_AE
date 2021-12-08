@@ -46,7 +46,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch', type=int, default=512, help="batch size")
     parser.add_argument('--e', type=int, default=100, help="number of epochs")
     parser.add_argument('--lr', type=float, default=1e-3, help="learning rate")
-    parser.add_argument('--model_dir', type=str, default="/data/model/", help="path to save model")
+    parser.add_argument('--model_dir', type=str, default="data/model/", help="path to save model")
     parser.add_argument('--n_train', type=int, default=3000, help="number of samples for train set")
     parser.add_argument('--n_test', type=int, default=1000, help="number of samples for test set")
     parser.add_argument('--k', type=int, default=2, help="number of kernels")

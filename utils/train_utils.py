@@ -1,4 +1,5 @@
 import torch
+import os
 
 
 def load_model_result(model, train_set, test_set, device):
@@ -49,6 +50,8 @@ def train_cp(model, optimizer, device, train_set, valid_set, num_epoch, path, m_
         print('Training Loss:', reconstruction_loss)
         print('Test Loss:', reconstruction_loss_1)
 
+    if not os.path.exists(path):
+        os.makedirs(path)
     torch.save(model.state_dict(), path + m_name + ".ckpt")
     print("model saved")
 
